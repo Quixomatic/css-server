@@ -108,7 +108,8 @@ COPY --chown=steam:steam dist/cstrike/addons/metamod.vdf /home/steam/css/cstrike
 # This allows the entrypoint to populate empty mounted volumes with defaults
 RUN mkdir -p /home/steam/css-defaults && \
     cp -r /home/steam/css/cstrike/cfg /home/steam/css-defaults/ && \
-    cp -r /home/steam/css/cstrike/addons /home/steam/css-defaults/
+    cp -r /home/steam/css/cstrike/addons /home/steam/css-defaults/ && \
+    cp -r /home/steam/css/cstrike/maps /home/steam/css-defaults/
 
 # Copy entrypoint script
 COPY --chown=steam:steam scripts/entrypoint.sh /home/steam/entrypoint.sh

@@ -125,6 +125,12 @@ initialize_volumes() {
         echo '}' >> "$CSTRIKE_DIR/addons/metamod.vdf"
     fi
 
+    # Initialize maps folder if empty
+    if [ -d "$CSTRIKE_DIR/maps" ] && [ -z "$(ls -A $CSTRIKE_DIR/maps 2>/dev/null)" ]; then
+        log_info "Initializing maps/ with defaults..."
+        cp -r "$BACKUP_DIR/maps/"* "$CSTRIKE_DIR/maps/" 2>/dev/null || true
+    fi
+
     # Create empty directories if they don't exist (for mounts)
     mkdir -p "$CSTRIKE_DIR/maps" 2>/dev/null || true
     mkdir -p "$CSTRIKE_DIR/sound" 2>/dev/null || true
