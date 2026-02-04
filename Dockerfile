@@ -56,13 +56,20 @@ RUN mkdir -p /home/steam/steamcmd && \
     cd /home/steam/steamcmd && \
     wget -qO- https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz | tar xvz
 
+# Update SteamCMD first (required before downloading apps)
+RUN /home/steam/steamcmd/steamcmd.sh +quit
+
 # Install Counter-Strike: Source Dedicated Server
 # App ID 232330 = CS:S Dedicated Server
-RUN /home/steam/steamcmd/steamcmd.sh \
-    +force_install_dir /home/steam/css \
-    +login anonymous \
-    +app_update 232330 validate \
-    +quit
+# Retry up to 3 times as SteamCMD can be flaky
+RUN for i in 1 2 3; do \
+        /home/steam/steamcmd/steamcmd.sh \
+            +force_install_dir /home/steam/css \
+            +login anonymous \
+            +app_update 232330 validate \
+            +quit \
+        && break || sleep 5; \
+    done && test -f /home/steam/css/srcds_run
 
 # Create Steam SDK symlink for 64-bit OS compatibility
 RUN mkdir -p /home/steam/.steam/sdk32 && \
@@ -113,8 +120,7 @@ RUN chmod +x /home/steam/tests/*.sh 2>/dev/null || true
 
 # Server Identity
 ENV CSS_HOSTNAME="Counter-Strike Source Server"
-ENV CSS_PASSWORD=""
-ENV RCON_PASSWORD=""
+# CSS_PASSWORD and RCON_PASSWORD should be set at runtime, not in image
 ENV CSS_CONTACT=""
 ENV CSS_REGION="255"
 
