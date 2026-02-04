@@ -145,74 +145,94 @@ initialize_volumes() {
 }
 
 # Generate dynamic configuration from environment variables
+# Only writes settings that are explicitly set - doesn't override server.cfg with defaults
 generate_env_config() {
     log_section "Generating Configuration"
 
-    cat > /home/steam/css/cstrike/cfg/env_settings.cfg << EOF
+    local cfg_file="/home/steam/css/cstrike/cfg/env_settings.cfg"
+
+    cat > "$cfg_file" << EOF
 // ============================================
 // AUTO-GENERATED FROM ENVIRONMENT VARIABLES
 // DO NOT EDIT - Changes will be overwritten on restart
 // ============================================
 // Generated at: $(date)
+// Only explicitly set env vars are included here.
+// Base settings come from server.cfg
 
-// === Server Identity ===
-hostname "${CSS_HOSTNAME:-Counter-Strike Source Server}"
-sv_contact "${CSS_CONTACT:-}"
-sv_region ${CSS_REGION:-255}
-
-// === Network Settings ===
-sv_maxrate ${CSS_MAXRATE:-0}
-sv_minrate ${CSS_MINRATE:-20000}
-sv_maxupdaterate ${CSS_MAXUPDATERATE:-100}
-sv_minupdaterate ${CSS_MINUPDATERATE:-30}
-sv_maxcmdrate ${CSS_MAXUPDATERATE:-100}
-sv_mincmdrate ${CSS_MINUPDATERATE:-30}
-
-// === Gameplay Settings ===
-mp_friendlyfire ${CSS_FRIENDLYFIRE:-0}
-sv_alltalk ${CSS_ALLTALK:-0}
-mp_timelimit ${CSS_TIMELIMIT:-30}
-mp_roundtime ${CSS_ROUNDTIME:-2.5}
-mp_freezetime ${CSS_FREEZETIME:-6}
-mp_buytime ${CSS_BUYTIME:-90}
-mp_startmoney ${CSS_STARTMONEY:-800}
-mp_c4timer ${CSS_C4TIMER:-45}
-mp_maxrounds ${CSS_MAXROUNDS:-0}
-mp_winlimit ${CSS_WINLIMIT:-0}
-sv_gravity ${CSS_GRAVITY:-800}
-mp_falldamage ${CSS_FALLDAMAGE:-1}
-
-// === Bot Configuration ===
-bot_quota ${CSS_BOT_QUOTA:-0}
-bot_quota_mode "${CSS_BOT_QUOTA_MODE:-fill}"
-bot_difficulty ${CSS_BOT_DIFFICULTY:-2}
-bot_chatter "${CSS_BOT_CHATTER:-minimal}"
-bot_join_after_player ${CSS_BOT_JOIN_AFTER_PLAYER:-1}
-bot_auto_vacate ${CSS_BOT_AUTO_VACATE:-1}
-bot_prefix "${CSS_BOT_PREFIX:-[BOT]}"
-
-// === Security Settings ===
-sv_pure ${CSS_PURE:-2}
-sv_cheats ${CSS_CHEATS:-0}
-sv_allowupload ${CSS_ALLOWUPLOAD:-0}
-sv_allowdownload ${CSS_ALLOWDOWNLOAD:-1}
-sv_rcon_banpenalty ${CSS_RCON_BANPENALTY:-30}
-sv_rcon_maxfailures ${CSS_RCON_MAXFAILURES:-10}
-sv_rcon_minfailures 5
-sv_rcon_minfailuretime 30
-
-// === Fast Download ===
-sv_downloadurl "${CSS_DOWNLOADURL:-}"
-net_maxfilesize ${CSS_MAXFILESIZE:-64}
-
-// === Logging ===
-log ${CSS_LOG:-on}
-sv_logbans ${CSS_LOGBANS:-1}
-sv_logecho 1
-sv_logfile 1
-sv_log_onefile 0
-mp_logdetail ${CSS_LOGDETAIL:-3}
 EOF
+
+    # Server Identity (always set hostname)
+    echo "// === Server Identity ===" >> "$cfg_file"
+    echo "hostname \"${CSS_HOSTNAME:-Counter-Strike Source Server}\"" >> "$cfg_file"
+    [ -n "$CSS_CONTACT" ] && echo "sv_contact \"$CSS_CONTACT\"" >> "$cfg_file"
+    [ -n "$CSS_REGION" ] && echo "sv_region $CSS_REGION" >> "$cfg_file"
+
+    # Fast Download (critical for custom content)
+    echo "" >> "$cfg_file"
+    echo "// === Fast Download ===" >> "$cfg_file"
+    [ -n "$CSS_DOWNLOADURL" ] && echo "sv_downloadurl \"$CSS_DOWNLOADURL\"" >> "$cfg_file"
+    [ -n "$CSS_MAXFILESIZE" ] && echo "net_maxfilesize $CSS_MAXFILESIZE" >> "$cfg_file"
+
+    # Optional overrides - only if explicitly set
+    local has_gameplay=0
+
+    if [ -n "$CSS_FRIENDLYFIRE" ] || [ -n "$CSS_ALLTALK" ] || [ -n "$CSS_TIMELIMIT" ] || \
+       [ -n "$CSS_ROUNDTIME" ] || [ -n "$CSS_FREEZETIME" ] || [ -n "$CSS_BUYTIME" ] || \
+       [ -n "$CSS_STARTMONEY" ] || [ -n "$CSS_C4TIMER" ] || [ -n "$CSS_MAXROUNDS" ] || \
+       [ -n "$CSS_WINLIMIT" ] || [ -n "$CSS_GRAVITY" ] || [ -n "$CSS_FALLDAMAGE" ]; then
+        echo "" >> "$cfg_file"
+        echo "// === Gameplay Overrides ===" >> "$cfg_file"
+        has_gameplay=1
+    fi
+
+    [ -n "$CSS_FRIENDLYFIRE" ] && echo "mp_friendlyfire $CSS_FRIENDLYFIRE" >> "$cfg_file"
+    [ -n "$CSS_ALLTALK" ] && echo "sv_alltalk $CSS_ALLTALK" >> "$cfg_file"
+    [ -n "$CSS_TIMELIMIT" ] && echo "mp_timelimit $CSS_TIMELIMIT" >> "$cfg_file"
+    [ -n "$CSS_ROUNDTIME" ] && echo "mp_roundtime $CSS_ROUNDTIME" >> "$cfg_file"
+    [ -n "$CSS_FREEZETIME" ] && echo "mp_freezetime $CSS_FREEZETIME" >> "$cfg_file"
+    [ -n "$CSS_BUYTIME" ] && echo "mp_buytime $CSS_BUYTIME" >> "$cfg_file"
+    [ -n "$CSS_STARTMONEY" ] && echo "mp_startmoney $CSS_STARTMONEY" >> "$cfg_file"
+    [ -n "$CSS_C4TIMER" ] && echo "mp_c4timer $CSS_C4TIMER" >> "$cfg_file"
+    [ -n "$CSS_MAXROUNDS" ] && echo "mp_maxrounds $CSS_MAXROUNDS" >> "$cfg_file"
+    [ -n "$CSS_WINLIMIT" ] && echo "mp_winlimit $CSS_WINLIMIT" >> "$cfg_file"
+    [ -n "$CSS_GRAVITY" ] && echo "sv_gravity $CSS_GRAVITY" >> "$cfg_file"
+    [ -n "$CSS_FALLDAMAGE" ] && echo "mp_falldamage $CSS_FALLDAMAGE" >> "$cfg_file"
+
+    # Bot settings - only if explicitly set
+    if [ -n "$CSS_BOT_QUOTA" ] || [ -n "$CSS_BOT_QUOTA_MODE" ] || [ -n "$CSS_BOT_DIFFICULTY" ]; then
+        echo "" >> "$cfg_file"
+        echo "// === Bot Configuration ===" >> "$cfg_file"
+    fi
+
+    [ -n "$CSS_BOT_QUOTA" ] && echo "bot_quota $CSS_BOT_QUOTA" >> "$cfg_file"
+    [ -n "$CSS_BOT_QUOTA_MODE" ] && echo "bot_quota_mode \"$CSS_BOT_QUOTA_MODE\"" >> "$cfg_file"
+    [ -n "$CSS_BOT_DIFFICULTY" ] && echo "bot_difficulty $CSS_BOT_DIFFICULTY" >> "$cfg_file"
+    [ -n "$CSS_BOT_CHATTER" ] && echo "bot_chatter \"$CSS_BOT_CHATTER\"" >> "$cfg_file"
+    [ -n "$CSS_BOT_JOIN_AFTER_PLAYER" ] && echo "bot_join_after_player $CSS_BOT_JOIN_AFTER_PLAYER" >> "$cfg_file"
+    [ -n "$CSS_BOT_AUTO_VACATE" ] && echo "bot_auto_vacate $CSS_BOT_AUTO_VACATE" >> "$cfg_file"
+    [ -n "$CSS_BOT_PREFIX" ] && echo "bot_prefix \"$CSS_BOT_PREFIX\"" >> "$cfg_file"
+
+    # Security settings - only if explicitly set
+    if [ -n "$CSS_PURE" ] || [ -n "$CSS_CHEATS" ] || [ -n "$CSS_ALLOWUPLOAD" ] || [ -n "$CSS_ALLOWDOWNLOAD" ]; then
+        echo "" >> "$cfg_file"
+        echo "// === Security Overrides ===" >> "$cfg_file"
+    fi
+
+    [ -n "$CSS_PURE" ] && echo "sv_pure $CSS_PURE" >> "$cfg_file"
+    [ -n "$CSS_CHEATS" ] && echo "sv_cheats $CSS_CHEATS" >> "$cfg_file"
+    [ -n "$CSS_ALLOWUPLOAD" ] && echo "sv_allowupload $CSS_ALLOWUPLOAD" >> "$cfg_file"
+    [ -n "$CSS_ALLOWDOWNLOAD" ] && echo "sv_allowdownload $CSS_ALLOWDOWNLOAD" >> "$cfg_file"
+
+    # Logging - only if explicitly set
+    if [ -n "$CSS_LOG" ] || [ -n "$CSS_LOGBANS" ] || [ -n "$CSS_LOGDETAIL" ]; then
+        echo "" >> "$cfg_file"
+        echo "// === Logging Overrides ===" >> "$cfg_file"
+    fi
+
+    [ -n "$CSS_LOG" ] && echo "log $CSS_LOG" >> "$cfg_file"
+    [ -n "$CSS_LOGBANS" ] && echo "sv_logbans $CSS_LOGBANS" >> "$cfg_file"
+    [ -n "$CSS_LOGDETAIL" ] && echo "mp_logdetail $CSS_LOGDETAIL" >> "$cfg_file"
 
     log_info "Generated env_settings.cfg"
 }
