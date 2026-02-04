@@ -75,26 +75,30 @@ RUN for i in 1 2 3; do \
 RUN mkdir -p /home/steam/.steam/sdk32 && \
     ln -s /home/steam/steamcmd/linux32/steamclient.so /home/steam/.steam/sdk32/steamclient.so
 
-# Install MetaMod:Source
-RUN echo "Installing MetaMod:Source ${METAMOD_VERSION}..." && \
-    METAMOD_URL=$(curl -sL "https://mms.alliedmods.net/mmsdrop/${METAMOD_VERSION}/mmsource-latest-linux") && \
-    wget -q "https://mms.alliedmods.net/mmsdrop/${METAMOD_VERSION}/${METAMOD_URL}" -O /tmp/metamod.tar.gz && \
+# Install MetaMod:Source (legacy 1.11 branch for 32-bit CS:S)
+# Note: CS:S is 32-bit only, so we need the legacy MetaMod/SourceMod builds
+ARG METAMOD_LEGACY_VERSION=1.11
+ARG SOURCEMOD_LEGACY_VERSION=1.11
+
+RUN echo "Installing MetaMod:Source ${METAMOD_LEGACY_VERSION} (32-bit)..." && \
+    METAMOD_URL=$(curl -sL "https://mms.alliedmods.net/mmsdrop/${METAMOD_LEGACY_VERSION}/mmsource-latest-linux") && \
+    wget -q "https://mms.alliedmods.net/mmsdrop/${METAMOD_LEGACY_VERSION}/${METAMOD_URL}" -O /tmp/metamod.tar.gz && \
     tar -xzf /tmp/metamod.tar.gz -C /home/steam/css/cstrike && \
     rm /tmp/metamod.tar.gz && \
     echo "MetaMod installed: ${METAMOD_URL}"
 
-# Install SourceMod
-RUN echo "Installing SourceMod ${SOURCEMOD_VERSION}..." && \
-    SM_URL=$(curl -sL "https://sm.alliedmods.net/smdrop/${SOURCEMOD_VERSION}/sourcemod-latest-linux") && \
-    wget -q "https://sm.alliedmods.net/smdrop/${SOURCEMOD_VERSION}/${SM_URL}" -O /tmp/sourcemod.tar.gz && \
+# Install SourceMod (legacy 1.11 branch for 32-bit CS:S)
+RUN echo "Installing SourceMod ${SOURCEMOD_LEGACY_VERSION} (32-bit)..." && \
+    SM_URL=$(curl -sL "https://sm.alliedmods.net/smdrop/${SOURCEMOD_LEGACY_VERSION}/sourcemod-latest-linux") && \
+    wget -q "https://sm.alliedmods.net/smdrop/${SOURCEMOD_LEGACY_VERSION}/${SM_URL}" -O /tmp/sourcemod.tar.gz && \
     tar -xzf /tmp/sourcemod.tar.gz -C /home/steam/css/cstrike && \
     rm /tmp/sourcemod.tar.gz && \
     echo "SourceMod installed: ${SM_URL}"
 
-# Create MetaMod VDF loader
+# Create MetaMod VDF loader (32-bit path)
 RUN echo '"Plugin"' > /home/steam/css/cstrike/addons/metamod.vdf && \
     echo '{' >> /home/steam/css/cstrike/addons/metamod.vdf && \
-    echo '    "file" "../cstrike/addons/metamod/bin/server"' >> /home/steam/css/cstrike/addons/metamod.vdf && \
+    echo '    "file" "../cstrike/addons/metamod/bin/linux32/server"' >> /home/steam/css/cstrike/addons/metamod.vdf && \
     echo '}' >> /home/steam/css/cstrike/addons/metamod.vdf
 
 # Copy configuration files
