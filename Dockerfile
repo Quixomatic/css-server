@@ -92,7 +92,8 @@ RUN cp /home/steam/tf2/srcds_linux64 /home/steam/css/ && \
 # Create symlinks for 64-bit server binaries (*_srv.so -> *.so)
 RUN cd /home/steam/css/bin/linux64 && \
     for file in *_srv.so; do \
-        ln -sf "$file" "${file/_srv/}"; \
+        target=$(echo "$file" | sed 's/_srv//'); \
+        ln -sf "$file" "$target"; \
     done
 
 # Clean up TF2 files to save space (~8GB)
