@@ -1,0 +1,50 @@
+# ============================================
+# Counter-Strike: Source Server - Git Ignore
+# ============================================
+
+# Environment files (contain passwords)
+.env
+.env.local
+.env.*.local
+
+# Server data directory (contains game files, logs, etc.)
+data/
+
+# Downloaded mods (large binary files)
+mods/*.tar.gz
+mods/*.zip
+
+# Logs
+*.log
+logs/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE / Editor directories
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Docker
+.docker/
+
+# Temporary files
+*.tmp
+*.temp
+tmp/
+temp/
+
+# Build artifacts
+*.pyc
+__pycache__/
+
+/examples

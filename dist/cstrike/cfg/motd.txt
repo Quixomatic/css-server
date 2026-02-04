@@ -1,0 +1,62 @@
+<html>
+<head>
+    <style>
+        body {
+            background-color: #1a1a2e;
+            color: #eee;
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            margin: 0;
+        }
+        h1 {
+            color: #ff6b35;
+            border-bottom: 2px solid #ff6b35;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #f7c59f;
+        }
+        .rules {
+            background-color: #16213e;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        ul {
+            margin: 10px 0;
+        }
+        li {
+            margin: 5px 0;
+        }
+        .footer {
+            margin-top: 20px;
+            font-size: 12px;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+    <h1>Welcome to Counter-Strike: Source</h1>
+
+    <div class="rules">
+        <h2>Server Rules</h2>
+        <ul>
+            <li>No cheating or exploiting</li>
+            <li>Respect all players</li>
+            <li>No excessive mic spam</li>
+            <li>Have fun!</li>
+        </ul>
+    </div>
+
+    <h2>Server Features</h2>
+    <ul>
+        <li>SourceMod Admin System</li>
+        <li>Map Voting</li>
+        <li>Rock The Vote</li>
+    </ul>
+
+    <div class="footer">
+        Powered by Docker | SourceMod | MetaMod
+    </div>
+</body>
+</html>
