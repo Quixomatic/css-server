@@ -72,10 +72,37 @@ RUN for i in 1 2 3; do \
         && break || sleep 5; \
     done && test -f /home/steam/css/srcds_run
 
+# Install TF2 Dedicated Server temporarily to get 64-bit binaries
+# CS:S is missing srcds_linux64, srcds_run_64, and libsteam_api.so (Valve Issue #7057)
+# App ID 232250 = TF2 Dedicated Server
+RUN for i in 1 2 3; do \
+        /home/steam/steamcmd/steamcmd.sh \
+            +force_install_dir /home/steam/tf2 \
+            +login anonymous \
+            +app_update 232250 validate \
+            +quit \
+        && break || sleep 5; \
+    done && test -f /home/steam/tf2/srcds_linux64
+
+# Copy missing 64-bit files from TF2 to CS:S (Valve Issue #7057 workaround)
+RUN cp /home/steam/tf2/srcds_linux64 /home/steam/css/ && \
+    cp /home/steam/tf2/srcds_run_64 /home/steam/css/ && \
+    cp /home/steam/tf2/bin/linux64/libsteam_api.so /home/steam/css/bin/linux64/
+
+# Create symlinks for 64-bit server binaries (*_srv.so -> *.so)
+RUN cd /home/steam/css/bin/linux64 && \
+    for file in *_srv.so; do \
+        ln -sf "$file" "${file/_srv/}"; \
+    done
+
+# Clean up TF2 files to save space (~8GB)
+RUN rm -rf /home/steam/tf2
+
 # Create Steam SDK symlinks for both 32-bit (SteamCMD) and 64-bit (CS:S)
 RUN mkdir -p /home/steam/.steam/sdk32 /home/steam/.steam/sdk64 && \
-    ln -s /home/steam/steamcmd/linux32/steamclient.so /home/steam/.steam/sdk32/steamclient.so && \
-    ln -s /home/steam/steamcmd/linux64/steamclient.so /home/steam/.steam/sdk64/steamclient.so
+    ln -sf /home/steam/steamcmd/linux32/steamclient.so /home/steam/.steam/sdk32/steamclient.so && \
+    ln -sf /home/steam/steamcmd/linux64/steamclient.so /home/steam/.steam/sdk64/steamclient.so && \
+    ln -sf /home/steam/steamcmd/linux64/steamclient.so /home/steam/css/bin/linux64/steamclient.so
 
 # Install MetaMod:Source 1.12 (64-bit - CS:S got 64-bit support Feb 2025)
 RUN echo "Installing MetaMod:Source ${METAMOD_VERSION} (64-bit)..." && \
@@ -188,8 +215,8 @@ ENV STEAM_GSLT=""
 # 26901/udp - NAT traversal
 EXPOSE 27015/tcp 27015/udp 27020/udp 27005/udp 26901/udp
 
-# Health check
+# Health check (64-bit server)
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD pgrep -f srcds_linux || exit 1
+    CMD pgrep -f srcds_linux64 || exit 1
 
 ENTRYPOINT ["/home/steam/entrypoint.sh"]
