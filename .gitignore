@@ -48,3 +48,6 @@ temp/
 __pycache__/
 
 /examples
+
+/.claude
+/.plans
