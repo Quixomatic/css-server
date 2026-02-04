@@ -61,18 +61,42 @@ See `.env.example` for all options.
 
 ## Volume Mounts
 
-The `data/cstrike` directory is mounted for persistence:
+Mount individual folders for full control:
 
+```yaml
+volumes:
+  - ./cfg:/home/steam/css/cstrike/cfg           # Server configs
+  - ./addons:/home/steam/css/cstrike/addons     # MetaMod + SourceMod + plugins
+  - ./maps:/home/steam/css/cstrike/maps         # Custom maps
+  - ./sound:/home/steam/css/cstrike/sound       # Custom sounds
+  - ./materials:/home/steam/css/cstrike/materials # Textures
+  - ./models:/home/steam/css/cstrike/models     # Models
+  - ./logs:/home/steam/css/cstrike/logs         # Server logs
 ```
-data/cstrike/
-├── cfg/                    # Server configs
-├── maps/                   # Custom maps
-├── addons/sourcemod/
-│   ├── plugins/            # Add plugins here
-│   ├── configs/            # Plugin configs
-│   └── data/               # Plugin data
-└── logs/                   # Server logs
+
+On first run, empty volumes are automatically populated with defaults.
+
+### Volume Permissions
+
+The container runs as user `steam` (UID 1000). Set permissions on your host:
+
+```bash
+# Set ownership to match container user
+sudo chown -R 1000:1000 /path/to/your/stack/
+
+# Set directory permissions (755 = rwxr-xr-x)
+sudo chmod -R 755 /path/to/your/stack/
 ```
+
+| Folder | Needs Write | Description |
+|--------|-------------|-------------|
+| `cfg/` | Yes | Configs, ban lists, env_settings.cfg |
+| `addons/` | Yes | SourceMod data, logs, plugin storage |
+| `maps/` | No | Custom map files (.bsp) |
+| `sound/` | No | Custom sounds |
+| `materials/` | No | Textures, sprays |
+| `models/` | No | Player/weapon models |
+| `logs/` | Yes | Server logs |
 
 ## Adding Admins
 
