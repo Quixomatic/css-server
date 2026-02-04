@@ -336,6 +336,9 @@ main() {
     # Change to server directory and start
     cd /home/steam/css
 
+    # Force 64-bit mode by prioritizing linux64 libraries (CS:S 64-bit support added Feb 2025)
+    export LD_LIBRARY_PATH="/home/steam/css/bin/linux64:/home/steam/css/bin:$LD_LIBRARY_PATH"
+
     exec ./srcds_run \
         -game cstrike \
         -port "${CSS_PORT:-27015}" \
