@@ -78,15 +78,43 @@ On first run, empty volumes are automatically populated with defaults.
 
 ### Volume Permissions
 
-The container runs as user `steam` (UID 1000). Set permissions on your host:
+The container runs as user `steam` (UID 1000). Set ownership and permissions on your host:
 
 ```bash
 # Set ownership to match container user
 sudo chown -R 1000:1000 /path/to/your/stack/
 
-# Set directory permissions (755 = rwxr-xr-x)
+# Set directory permissions
 sudo chmod -R 755 /path/to/your/stack/
 ```
+
+#### Permission Reference (755 - Recommended for directories)
+
+|        | Read | Write | Execute |
+|--------|:----:|:-----:|:-------:|
+| User   |  ✓   |   ✓   |    ✓    |
+| Group  |  ✓   |       |    ✓    |
+| Other  |  ✓   |       |    ✓    |
+
+#### Permission Reference (775 - More permissive alternative)
+
+|        | Read | Write | Execute |
+|--------|:----:|:-----:|:-------:|
+| User   |  ✓   |   ✓   |    ✓    |
+| Group  |  ✓   |   ✓   |    ✓    |
+| Other  |  ✓   |       |    ✓    |
+
+#### Permission Reference (644 - For files if needed)
+
+|        | Read | Write | Execute |
+|--------|:----:|:-----:|:-------:|
+| User   |  ✓   |   ✓   |         |
+| Group  |  ✓   |       |         |
+| Other  |  ✓   |       |         |
+
+**Owner UID:** `1000`
+
+#### Folder Write Requirements
 
 | Folder | Needs Write | Description |
 |--------|-------------|-------------|
