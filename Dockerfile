@@ -16,10 +16,8 @@ ARG SOURCEMOD_VERSION=1.12
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Install dependencies
-# - lib32gcc-s1, lib32stdc++6: 32-bit libraries for srcds
-# - lib32z1: zlib for compression
-# - libncurses5:i386: terminal handling
-# - libbz2-1.0:i386: bzip2 compression
+# - 64-bit libraries for srcds (CS:S got 64-bit support Feb 2025)
+# - 32-bit libraries kept for SteamCMD compatibility
 # - wget, curl, ca-certificates: downloading
 # - unzip: extracting plugins
 RUN dpkg --add-architecture i386 && \
@@ -28,14 +26,17 @@ RUN dpkg --add-architecture i386 && \
         wget \
         curl \
         ca-certificates \
+        unzip \
+        locales \
+        # 64-bit libraries for CS:S
+        libstdc++6 \
+        libc6 \
+        libcurl4 \
+        # 32-bit libraries for SteamCMD
         lib32gcc-s1 \
         lib32stdc++6 \
         lib32z1 \
-        libncurses5:i386 \
-        libbz2-1.0:i386 \
-        libcurl4-gnutls-dev:i386 \
-        unzip \
-        locales \
+        libc6-i386 \
     && rm -rf /var/lib/apt/lists/* \
     && locale-gen en_US.UTF-8
 
@@ -71,34 +72,31 @@ RUN for i in 1 2 3; do \
         && break || sleep 5; \
     done && test -f /home/steam/css/srcds_run
 
-# Create Steam SDK symlink for 64-bit OS compatibility
-RUN mkdir -p /home/steam/.steam/sdk32 && \
-    ln -s /home/steam/steamcmd/linux32/steamclient.so /home/steam/.steam/sdk32/steamclient.so
+# Create Steam SDK symlinks for both 32-bit (SteamCMD) and 64-bit (CS:S)
+RUN mkdir -p /home/steam/.steam/sdk32 /home/steam/.steam/sdk64 && \
+    ln -s /home/steam/steamcmd/linux32/steamclient.so /home/steam/.steam/sdk32/steamclient.so && \
+    ln -s /home/steam/steamcmd/linux64/steamclient.so /home/steam/.steam/sdk64/steamclient.so
 
-# Install MetaMod:Source (legacy 1.11 branch for 32-bit CS:S)
-# Note: CS:S is 32-bit only, so we need the legacy MetaMod/SourceMod builds
-ARG METAMOD_LEGACY_VERSION=1.11
-ARG SOURCEMOD_LEGACY_VERSION=1.11
-
-RUN echo "Installing MetaMod:Source ${METAMOD_LEGACY_VERSION} (32-bit)..." && \
-    METAMOD_URL=$(curl -sL "https://mms.alliedmods.net/mmsdrop/${METAMOD_LEGACY_VERSION}/mmsource-latest-linux") && \
-    wget -q "https://mms.alliedmods.net/mmsdrop/${METAMOD_LEGACY_VERSION}/${METAMOD_URL}" -O /tmp/metamod.tar.gz && \
+# Install MetaMod:Source 1.12 (64-bit - CS:S got 64-bit support Feb 2025)
+RUN echo "Installing MetaMod:Source ${METAMOD_VERSION} (64-bit)..." && \
+    METAMOD_URL=$(curl -sL "https://mms.alliedmods.net/mmsdrop/${METAMOD_VERSION}/mmsource-latest-linux") && \
+    wget -q "https://mms.alliedmods.net/mmsdrop/${METAMOD_VERSION}/${METAMOD_URL}" -O /tmp/metamod.tar.gz && \
     tar -xzf /tmp/metamod.tar.gz -C /home/steam/css/cstrike && \
     rm /tmp/metamod.tar.gz && \
     echo "MetaMod installed: ${METAMOD_URL}"
 
-# Install SourceMod (legacy 1.11 branch for 32-bit CS:S)
-RUN echo "Installing SourceMod ${SOURCEMOD_LEGACY_VERSION} (32-bit)..." && \
-    SM_URL=$(curl -sL "https://sm.alliedmods.net/smdrop/${SOURCEMOD_LEGACY_VERSION}/sourcemod-latest-linux") && \
-    wget -q "https://sm.alliedmods.net/smdrop/${SOURCEMOD_LEGACY_VERSION}/${SM_URL}" -O /tmp/sourcemod.tar.gz && \
+# Install SourceMod 1.12 (64-bit)
+RUN echo "Installing SourceMod ${SOURCEMOD_VERSION} (64-bit)..." && \
+    SM_URL=$(curl -sL "https://sm.alliedmods.net/smdrop/${SOURCEMOD_VERSION}/sourcemod-latest-linux") && \
+    wget -q "https://sm.alliedmods.net/smdrop/${SOURCEMOD_VERSION}/${SM_URL}" -O /tmp/sourcemod.tar.gz && \
     tar -xzf /tmp/sourcemod.tar.gz -C /home/steam/css/cstrike && \
     rm /tmp/sourcemod.tar.gz && \
     echo "SourceMod installed: ${SM_URL}"
 
-# Create MetaMod VDF loader (32-bit path)
+# Create MetaMod VDF loader (64-bit path for CS:S Feb 2025 update)
 RUN echo '"Plugin"' > /home/steam/css/cstrike/addons/metamod.vdf && \
     echo '{' >> /home/steam/css/cstrike/addons/metamod.vdf && \
-    echo '    "file" "../cstrike/addons/metamod/bin/linux32/server"' >> /home/steam/css/cstrike/addons/metamod.vdf && \
+    echo '    "file" "../cstrike/addons/metamod/bin/linux64/server"' >> /home/steam/css/cstrike/addons/metamod.vdf && \
     echo '}' >> /home/steam/css/cstrike/addons/metamod.vdf
 
 # Copy configuration files

@@ -121,7 +121,7 @@ initialize_volumes() {
         mkdir -p "$CSTRIKE_DIR/addons"
         echo '"Plugin"' > "$CSTRIKE_DIR/addons/metamod.vdf"
         echo '{' >> "$CSTRIKE_DIR/addons/metamod.vdf"
-        echo '    "file" "../cstrike/addons/metamod/bin/linux32/server"' >> "$CSTRIKE_DIR/addons/metamod.vdf"
+        echo '    "file" "../cstrike/addons/metamod/bin/linux64/server"' >> "$CSTRIKE_DIR/addons/metamod.vdf"
         echo '}' >> "$CSTRIKE_DIR/addons/metamod.vdf"
     fi
 

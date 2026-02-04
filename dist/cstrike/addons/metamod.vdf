@@ -1,4 +1,4 @@
 "Plugin"
 {
-	"file"	"../cstrike/addons/metamod/bin/linux32/server"
+	"file"	"../cstrike/addons/metamod/bin/linux64/server"
 }
