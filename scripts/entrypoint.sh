@@ -358,6 +358,7 @@ main() {
 
     exec ./srcds_run_64 \
         -game cstrike \
+        +hostname "${CSS_HOSTNAME:-Counter-Strike Source Server}" \
         -port "${CSS_PORT:-27015}" \
         +map "${CSS_MAP:-de_dust2}" \
         +maxplayers "${CSS_MAXPLAYERS:-24}" \
