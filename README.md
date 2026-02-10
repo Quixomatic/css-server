@@ -167,6 +167,25 @@ make update     # Update CS:S
 | 27005 | UDP | HLTV |
 | 26901 | UDP | NAT |
 
+## Ecosystem
+
+This is the base server image. Game-specific images extend it with mods, maps, and configs.
+
+| Project | Description | Image |
+|---------|-------------|-------|
+| [css-server](https://github.com/Quixomatic/css-server) (this) | Base CS:S server with MetaMod + SourceMod | `ghcr.io/quixomatic/css-server` |
+| [css-soccer-server](https://github.com/Quixomatic/css-soccer-server) | Soccer server (extends css-server) | `ghcr.io/quixomatic/css-soccer-server` |
+| [soccer-mod](https://github.com/Quixomatic/soccer-mod) | SourcePawn soccer plugin | - |
+| [soccer-stats](https://github.com/Quixomatic/soccer-stats) | Web stats viewer | `ghcr.io/quixomatic/soccer-stats` |
+
+```
+css-server (base image)
+  └── css-soccer-server (extends with Soccer Mod + maps + skins)
+        ├── soccer-mod (.smx plugin from GitHub releases)
+        ├── mariadb (stats database)
+        └── soccer-stats (web frontend for stats)
+```
+
 ## License
 
 MIT
