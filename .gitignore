@@ -49,5 +49,7 @@ __pycache__/
 
 /examples
 
+# Claude Code
 /.claude
 /.plans
+CLAUDE.md
