@@ -21,11 +21,23 @@ jobs:
     steps:
       - name: Free up disk space
         run: |
+          echo "=== Before cleanup ==="
+          df -h
           sudo rm -rf /usr/share/dotnet
           sudo rm -rf /usr/local/lib/android
           sudo rm -rf /opt/ghc
           sudo rm -rf /opt/hostedtoolcache/CodeQL
+          sudo rm -rf /usr/local/share/boost
+          sudo rm -rf /usr/share/swift
+          sudo rm -rf /usr/local/julia*
+          sudo rm -rf /usr/share/kotlinc
+          sudo rm -rf /usr/local/share/chromium
+          sudo rm -rf /usr/local/share/powershell
+          sudo rm -rf /opt/microsoft
+          sudo rm -rf /opt/pipx
           sudo docker image prune --all --force
+          echo "=== After cleanup ==="
+          df -h
 
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
