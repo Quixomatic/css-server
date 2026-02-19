@@ -3,6 +3,7 @@
 # ============================================
 # Triggers after the main build workflow completes successfully.
 # Pulls the image from GHCR and pushes to Docker Hub for discoverability.
+# Also syncs the README as the Docker Hub overview.
 
 name: Push to Docker Hub
 
@@ -10,13 +11,16 @@ on:
   workflow_run:
     workflows: ["Build and Push CSS Server"]
     types: [completed]
-    branches: [main, master]
   workflow_dispatch:  # Allow manual triggers
 
 jobs:
   push-to-dockerhub:
     runs-on: ubuntu-latest
     if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+
+    permissions:
+      contents: read
+      packages: read
 
     steps:
       - name: Free up disk space
@@ -39,6 +43,24 @@ jobs:
           echo "=== After cleanup ==="
           df -h
 
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Read version
+        id: version
+        run: |
+          if [ -f VERSION ]; then
+            VERSION=$(cat VERSION | tr -d '[:space:]')
+            MAJOR_MINOR="${VERSION%.*}"
+            echo "version=${VERSION}" >> $GITHUB_OUTPUT
+            echo "major_minor=${MAJOR_MINOR}" >> $GITHUB_OUTPUT
+            echo "Version from VERSION file: ${VERSION}"
+          else
+            echo "version=" >> $GITHUB_OUTPUT
+            echo "major_minor=" >> $GITHUB_OUTPUT
+            echo "No VERSION file found"
+          fi
+
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
@@ -56,6 +78,8 @@ jobs:
         run: |
           GHCR_IMAGE="ghcr.io/${GITHUB_REPOSITORY,,}:latest"
           DH_USER="${{ secrets.DOCKERHUB_USERNAME }}"
+          VERSION="${{ steps.version.outputs.version }}"
+          MAJOR_MINOR="${{ steps.version.outputs.major_minor }}"
 
           echo "Pulling ${GHCR_IMAGE}..."
           docker pull "${GHCR_IMAGE}"
@@ -63,26 +87,24 @@ jobs:
           # Always push latest
           docker tag "${GHCR_IMAGE}" "${DH_USER}/css-server:latest"
           docker push "${DH_USER}/css-server:latest"
+          echo "Pushed: latest"
 
-          # Push version tag if available (extract from GHCR tags)
-          # The build workflow tags semver versions, so check for them
-          TAGS=$(docker inspect "${GHCR_IMAGE}" --format '{{ "{{" }}json .RepoTags{{ "}}" }}' 2>/dev/null || echo "[]")
-          echo "Available tags: ${TAGS}"
-
-          # Also try to get version from the workflow run's head branch (tag name)
-          VERSION_TAG="${{ github.event.workflow_run.head_branch }}"
-          if [[ "${VERSION_TAG}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            VERSION="${VERSION_TAG#v}"
-            MAJOR_MINOR="${VERSION%.*}"
-
-            echo "Version detected: ${VERSION}"
+          # Push version tags if VERSION file exists
+          if [ -n "${VERSION}" ]; then
             docker tag "${GHCR_IMAGE}" "${DH_USER}/css-server:${VERSION}"
             docker tag "${GHCR_IMAGE}" "${DH_USER}/css-server:${MAJOR_MINOR}"
             docker push "${DH_USER}/css-server:${VERSION}"
             docker push "${DH_USER}/css-server:${MAJOR_MINOR}"
-            echo "Pushed version tags: ${VERSION}, ${MAJOR_MINOR}"
-          else
-            echo "No version tag detected (branch: ${VERSION_TAG}), pushing latest only"
+            echo "Pushed: ${VERSION}, ${MAJOR_MINOR}"
           fi
 
           echo "Done!"
+
+      - name: Update Docker Hub description
+        uses: peter-evans/dockerhub-description@v4
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          repository: ${{ secrets.DOCKERHUB_USERNAME }}/css-server
+          readme-filepath: ./README.md
+          short-description: "Counter-Strike: Source dedicated server with MetaMod, SourceMod, and SM-RIPExt"
