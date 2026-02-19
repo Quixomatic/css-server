@@ -43,18 +43,34 @@ jobs:
       - name: Pull from GHCR and push to Docker Hub
         run: |
           GHCR_IMAGE="ghcr.io/${GITHUB_REPOSITORY,,}:latest"
-          DOCKERHUB_IMAGE="${{ secrets.DOCKERHUB_USERNAME }}/css-server:latest"
-          SHA_TAG="${{ secrets.DOCKERHUB_USERNAME }}/css-server:${{ github.event.workflow_run.head_sha }}"
+          DH_USER="${{ secrets.DOCKERHUB_USERNAME }}"
 
           echo "Pulling ${GHCR_IMAGE}..."
           docker pull "${GHCR_IMAGE}"
 
-          echo "Tagging for Docker Hub..."
-          docker tag "${GHCR_IMAGE}" "${DOCKERHUB_IMAGE}"
-          docker tag "${GHCR_IMAGE}" "${SHA_TAG}"
+          # Always push latest
+          docker tag "${GHCR_IMAGE}" "${DH_USER}/css-server:latest"
+          docker push "${DH_USER}/css-server:latest"
 
-          echo "Pushing to Docker Hub..."
-          docker push "${DOCKERHUB_IMAGE}"
-          docker push "${SHA_TAG}"
+          # Push version tag if available (extract from GHCR tags)
+          # The build workflow tags semver versions, so check for them
+          TAGS=$(docker inspect "${GHCR_IMAGE}" --format '{{ "{{" }}json .RepoTags{{ "}}" }}' 2>/dev/null || echo "[]")
+          echo "Available tags: ${TAGS}"
 
-          echo "Done! Pushed ${DOCKERHUB_IMAGE} and ${SHA_TAG}"
+          # Also try to get version from the workflow run's head branch (tag name)
+          VERSION_TAG="${{ github.event.workflow_run.head_branch }}"
+          if [[ "${VERSION_TAG}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            VERSION="${VERSION_TAG#v}"
+            MAJOR_MINOR="${VERSION%.*}"
+
+            echo "Version detected: ${VERSION}"
+            docker tag "${GHCR_IMAGE}" "${DH_USER}/css-server:${VERSION}"
+            docker tag "${GHCR_IMAGE}" "${DH_USER}/css-server:${MAJOR_MINOR}"
+            docker push "${DH_USER}/css-server:${VERSION}"
+            docker push "${DH_USER}/css-server:${MAJOR_MINOR}"
+            echo "Pushed version tags: ${VERSION}, ${MAJOR_MINOR}"
+          else
+            echo "No version tag detected (branch: ${VERSION_TAG}), pushing latest only"
+          fi
+
+          echo "Done!"

@@ -8,7 +8,7 @@ name: Build and Push CSS Server
 
 on:
   push:
-    branches: [main, master]
+    tags: ['v*']
   pull_request:
     branches: [main, master]
   workflow_dispatch:  # Allow manual triggers
@@ -58,10 +58,10 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value=latest
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
             type=sha,prefix=
-            type=ref,event=branch
-            type=ref,event=pr
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
