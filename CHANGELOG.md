@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.0.1
+
+### Changes
+- OCI standard labels in Dockerfile (source, description, vendor) for Docker Hub integration
+- Tag-based build triggers: Docker image only builds on version tags, not every push
+- Docker Hub workflow: version tags (1.0.1, 1.0), README sync as overview, aggressive disk cleanup
+- Release skill for streamlined version bumps
+
+---
+
 ## 1.0.0
 
 ### Features
