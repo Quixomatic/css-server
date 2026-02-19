@@ -1,0 +1,51 @@
+# ============================================
+# GitHub Actions - Push to Docker Hub
+# ============================================
+# Triggers after the main build workflow completes successfully.
+# Pulls the image from GHCR and pushes to Docker Hub for discoverability.
+
+name: Push to Docker Hub
+
+on:
+  workflow_run:
+    workflows: ["Build and Push CSS Server"]
+    types: [completed]
+    branches: [main, master]
+
+jobs:
+  push-to-dockerhub:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
+    steps:
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Pull from GHCR and push to Docker Hub
+        run: |
+          GHCR_IMAGE="ghcr.io/${{ github.repository }}:latest"
+          DOCKERHUB_IMAGE="${{ secrets.DOCKERHUB_USERNAME }}/css-server:latest"
+          SHA_TAG="${{ secrets.DOCKERHUB_USERNAME }}/css-server:${{ github.event.workflow_run.head_sha }}"
+
+          echo "Pulling ${GHCR_IMAGE}..."
+          docker pull "${GHCR_IMAGE}"
+
+          echo "Tagging for Docker Hub..."
+          docker tag "${GHCR_IMAGE}" "${DOCKERHUB_IMAGE}"
+          docker tag "${GHCR_IMAGE}" "${SHA_TAG}"
+
+          echo "Pushing to Docker Hub..."
+          docker push "${DOCKERHUB_IMAGE}"
+          docker push "${SHA_TAG}"
+
+          echo "Done! Pushed ${DOCKERHUB_IMAGE} and ${SHA_TAG}"
