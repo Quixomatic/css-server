@@ -121,6 +121,14 @@ RUN echo "Installing SourceMod ${SOURCEMOD_VERSION} (64-bit)..." && \
     rm /tmp/sourcemod.tar.gz && \
     echo "SourceMod installed: ${SM_URL}"
 
+# Install SM-RIPExt (REST in Pawn) - HTTP/JSON extension for SourceMod
+RUN echo "Installing SM-RIPExt..." && \
+    RIPEXT_VERSION=$(curl -sL https://api.github.com/repos/ErikMinekus/sm-ripext/releases/latest | grep -oP '"tag_name":\s*"\K[^"]+') && \
+    wget -q "https://github.com/ErikMinekus/sm-ripext/releases/download/${RIPEXT_VERSION}/sm-ripext-${RIPEXT_VERSION}-linux.zip" -O /tmp/ripext.zip && \
+    unzip -qo /tmp/ripext.zip -d /home/steam/css/cstrike && \
+    rm /tmp/ripext.zip && \
+    echo "SM-RIPExt installed: ${RIPEXT_VERSION}"
+
 # Create MetaMod VDF loader (64-bit path for CS:S Feb 2025 update)
 RUN echo '"Plugin"' > /home/steam/css/cstrike/addons/metamod.vdf && \
     echo '{' >> /home/steam/css/cstrike/addons/metamod.vdf && \
