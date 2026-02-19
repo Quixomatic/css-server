@@ -3,10 +3,11 @@
 
 FROM ubuntu:22.04
 
-LABEL maintainer="admin@example.com"
-LABEL org.label-schema.schema-version="1.0"
-LABEL org.label-schema.description="Counter-Strike: Source Dedicated Server with SourceMod"
-LABEL org.label-schema.url="https://github.com/yourusername/css-server"
+LABEL org.opencontainers.image.source="https://github.com/Quixomatic/css-server"
+LABEL org.opencontainers.image.description="Counter-Strike: Source dedicated server with MetaMod, SourceMod, and SM-RIPExt"
+LABEL org.opencontainers.image.url="https://github.com/Quixomatic/css-server"
+LABEL org.opencontainers.image.documentation="https://github.com/Quixomatic/css-server#readme"
+LABEL org.opencontainers.image.vendor="Quixomatic"
 
 # Build arguments for versioning
 ARG METAMOD_VERSION=1.12
