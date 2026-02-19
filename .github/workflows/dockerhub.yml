@@ -33,7 +33,7 @@ jobs:
 
       - name: Pull from GHCR and push to Docker Hub
         run: |
-          GHCR_IMAGE="ghcr.io/${{ github.repository }}:latest"
+          GHCR_IMAGE="ghcr.io/${GITHUB_REPOSITORY,,}:latest"
           DOCKERHUB_IMAGE="${{ secrets.DOCKERHUB_USERNAME }}/css-server:latest"
           SHA_TAG="${{ secrets.DOCKERHUB_USERNAME }}/css-server:${{ github.event.workflow_run.head_sha }}"
 
